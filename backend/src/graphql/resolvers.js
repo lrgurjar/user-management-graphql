@@ -59,7 +59,7 @@ export const resolvers = {
   },
 
   Mutation: {
-    register: async (_, { input }) => {
+    register: async (_, { input }, context) => {
       const name = input.name?.trim();
       const email = input.email?.trim().toLowerCase();
 
@@ -83,13 +83,19 @@ export const resolvers = {
         role: "USER",
       });
 
-      return {
-        token: generateToken(user),
-        user,
-      };
+      const token = generateToken(user);
+      context.res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.COOKIE_SAME_SITE || "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+
+      return { user };
     },
 
-    login: async (_, { email, password }) => {
+    login: async (_, { email, password }, context) => {
       const normalizedEmail = email?.trim().toLowerCase();
 
       const user = await User.findOne({
@@ -104,10 +110,26 @@ export const resolvers = {
         throw new Error("Account is disabled");
       }
 
-      return {
-        token: generateToken(user),
-        user,
-      };
+      const token = generateToken(user);
+      context.res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.COOKIE_SAME_SITE || "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+
+      return { user };
+    },
+
+    logout: async (_, __, context) => {
+      context.res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.COOKIE_SAME_SITE || "lax",
+        path: "/",
+      });
+      return true;
     },
 
     createUser: async (_, { input }, context) => {
