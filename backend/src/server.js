@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import multer from "multer";
 import fs from "node:fs";
 import path from "node:path";
@@ -46,7 +47,7 @@ const corsOptions = {
     return callback(new Error(`CORS blocked origin: ${origin}`));
   },
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
   credentials: true,
   optionsSuccessStatus: 204,
 };
@@ -109,6 +110,7 @@ async function startServer() {
   app.use(cors(corsOptions));
 
   app.use(express.json({ limit: "100kb" }));
+  app.use(cookieParser());
 
   // Serve saved profile images.
   app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
@@ -172,7 +174,9 @@ async function startServer() {
   app.use(
     "/graphql",
     expressMiddleware(server, {
-      context: async ({ req }) => ({
+      context: async ({ req, res }) => ({
+        req,
+        res,
         user: await getUserFromToken(req),
       }),
     }),
