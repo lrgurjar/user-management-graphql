@@ -15,7 +15,7 @@ export async function getUserFromToken(req) {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(decodeURIComponent(token), process.env.JWT_SECRET);
 
     return await User.findById(decoded.userId);
   } catch {
