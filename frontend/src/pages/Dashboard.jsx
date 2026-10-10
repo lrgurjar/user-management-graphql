@@ -3,7 +3,42 @@ import { useQuery, useMutation } from "@apollo/client/react";
 import { Link, useNavigate } from "react-router-dom";
 import { GET_USERS } from "../graphql/queries";
 import { CREATE_USER, UPDATE_USER, DELETE_USER } from "../graphql/mutations";
+import { GET_ME } from "../graphql/queries";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+function getImageUrl(imageUrl) {
+  if (!imageUrl) return "";
+
+  if (/^https?:\/\//i.test(imageUrl)) {
+    return imageUrl;
+  }
+
+  return `${API_URL}/${imageUrl.replace(/^\/+/, "")}`;
+}
+
+function UserAvatar({ user, size = "h-10 w-10" }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const imageUrl = getImageUrl(user?.profileImageUrl);
+
+  return (
+    <div
+      className={`${size} grid shrink-0 place-items-center overflow-hidden rounded-full bg-indigo-50 font-bold text-indigo-700`}
+    >
+      {imageUrl && !imageFailed ? (
+        <img
+          key={imageUrl}
+          src={imageUrl}
+          alt={`${user?.name || "User"} profile`}
+          className="h-full w-full object-cover"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        user?.name?.trim()?.charAt(0)?.toUpperCase() || "U"
+      )}
+    </div>
+  );
+}
 const emptyForm = {
   name: "",
   email: "",
@@ -117,6 +152,12 @@ export default function Dashboard() {
     }
   }
 
+  const { data: meData } = useQuery(GET_ME, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  const currentUser = meData?.me;
+
   async function handleDelete(user) {
     if (!window.confirm(`Delete ${user.name}? This cannot be undone.`)) {
       return;
@@ -210,10 +251,21 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <Link
               to="/profile"
-              className="hidden text-sm font-medium text-slate-600 hover:text-indigo-600 sm:block"
+              className="flex items-center gap-2"
+              aria-label="Open my profile"
             >
-              My Profile
+              <UserAvatar user={currentUser} size="h-10 w-10" />
+
+              <div className="hidden sm:block">
+                <p className="text-sm font-semibold text-slate-800">
+                  {currentUser?.name || "My Profile"}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {currentUser?.role || ""}
+                </p>
+              </div>
             </Link>
+
             <button onClick={logout} className={secondaryButton}>
               Logout
             </button>
@@ -429,9 +481,8 @@ export default function Dashboard() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-indigo-50 font-bold text-indigo-700">
-                            {user.name?.charAt(0).toUpperCase()}
-                          </div>
+                          <UserAvatar user={user} />
+
                           <div>
                             <p className="font-semibold text-slate-800">
                               {user.name}
@@ -535,6 +586,7 @@ function StatCard({ label, value, detail, symbol, color }) {
           </p>
           <p className="mt-2 text-xs text-slate-400">{detail}</p>
         </div>
+
         <div
           className={`grid h-11 w-11 place-items-center rounded-xl text-xl font-bold ${colors[color]}`}
         >

@@ -9,6 +9,7 @@ export const typeDefs = gql`
     isActive: Boolean!
     createdAt: String!
     updatedAt: String!
+    profileImageUrl: String
   }
 
   type AuthPayload {

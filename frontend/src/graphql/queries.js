@@ -8,6 +8,7 @@ export const GET_ME = gql`
       email
       role
       isActive
+      profileImageUrl
     }
   }
 `;
@@ -20,6 +21,7 @@ export const GET_USERS = gql`
       email
       role
       isActive
+      profileImageUrl
       createdAt
     }
   }
@@ -33,6 +35,7 @@ export const GET_USER = gql`
       email
       role
       isActive
+      profileImageUrl
     }
   }
 `;
