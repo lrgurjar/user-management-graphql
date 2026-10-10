@@ -2,13 +2,17 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export async function getUserFromToken(req) {
+  // Prefer the HttpOnly cookie; Bearer support remains for existing API clients.
+  const cookieToken = req.cookies?.token;
   const authorization = req.headers.authorization;
+  const bearerToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice(7)
+    : null;
+  const token = cookieToken || bearerToken;
 
-  if (!authorization?.startsWith("Bearer ")) {
+  if (!token) {
     return null;
   }
-
-  const token = authorization.slice(7);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
