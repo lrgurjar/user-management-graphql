@@ -8,7 +8,10 @@ export async function getUserFromToken(req) {
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(decodeURIComponent(token), process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      decodeURIComponent(token),
+      process.env.JWT_SECRET,
+    );
 
     return await User.findById(decoded.userId);
   } catch {
