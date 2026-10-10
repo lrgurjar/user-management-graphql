@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useApolloClient, useQuery, useMutation } from "@apollo/client/react";
 import { Link, useNavigate } from "react-router-dom";
 import { GET_USERS } from "../graphql/queries";
-import { CREATE_USER, UPDATE_USER, DELETE_USER } from "../graphql/mutations";
+import { CREATE_USER, UPDATE_USER, DELETE_USER, LOGOUT } from "../graphql/mutations";
 import { GET_ME } from "../graphql/queries";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -57,6 +57,8 @@ const secondaryButton =
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const apolloClient = useApolloClient();
+  const [logoutMutation] = useMutation(LOGOUT);
 
   const { data, loading, error, refetch } = useQuery(GET_USERS, {
     fetchPolicy: "cache-and-network",
@@ -86,9 +88,13 @@ export default function Dashboard() {
 
   const activeCount = users.filter((user) => user.isActive).length;
 
-  function logout() {
-    localStorage.removeItem("token");
-    navigate("/login", { replace: true });
+  async function logout() {
+    try {
+      await logoutMutation();
+    } finally {
+      await apolloClient.clearStore();
+      navigate("/login", { replace: true });
+    }
   }
 
   function startEdit(user) {
