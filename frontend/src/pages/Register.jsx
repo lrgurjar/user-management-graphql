@@ -21,11 +21,10 @@ export default function Register() {
     e.preventDefault();
 
     try {
-      const { data } = await register({
+      await register({
         variables: { input: form },
       });
 
-      localStorage.setItem("token", data.register.token);
       navigate("/dashboard", { replace: true });
     } catch {
       // Display the mutation error below.
