@@ -13,11 +13,10 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const { data } = await login({
+      await login({
         variables: { email, password },
       });
 
-      localStorage.setItem("token", data.login.token);
       navigate("/dashboard", { replace: true });
     } catch {
       // The GraphQL error is displayed below.
