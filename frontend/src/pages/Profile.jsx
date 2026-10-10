@@ -96,20 +96,12 @@ export default function Profile() {
     setMessage("");
 
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        throw new Error("Please log in again.");
-      }
-
       const formData = new FormData();
       formData.append("image", selectedImage);
 
       const response = await fetch(`${API_URL}/api/users/me/profile-image`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
         body: formData,
       });
 
